@@ -1,13 +1,92 @@
-from uuid import uuid4
+import time
+import orjson
 from django.db import models
 
+USER_STATES = ('begin', 'start', 'hello',
+               'greeting', 'normal', 'quiz', 'secret')
 
-class Message(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4)
-    message_type = models.CharField(max_length=255)
+
+class IncomingMessage(models.Model):
+    id = models.AutoField(primary_key=True)
     from_id = models.IntegerField()
-
     text = models.CharField(max_length=4096)
 
     def __str__(self):
         return self.text
+
+    @classmethod
+    def create(cls, json_object):
+        from_id = json_object['object']['message']['from_id']
+        text = json_object['object']['message']['text']
+
+        driver = cls(from_id=from_id,
+                     text=text)
+        return driver
+
+
+def get_time():
+    return int(time.time())
+
+
+class User(models.Model):
+    id = models.AutoField(primary_key=True)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    vk_id = models.IntegerField(unique=True)
+    state = models.CharField(max_length=255, default=USER_STATES[0])
+    created_at = models.BigIntegerField(
+        default=get_time, blank=True, help_text="format: Unix timestamp")
+    last_quiz_solve = models.IntegerField(default=0)
+    solving_mode = models.BooleanField(default=False)
+
+    @classmethod
+    def create(cls, vk_user_id, first_name="", last_name=""):
+        return cls(first_name=first_name,
+                   last_name=last_name,
+                   vk_id=vk_user_id)
+
+
+class Quiz(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=4100)
+    text = models.CharField(max_length=4100)
+    answers_json = models.CharField(max_length=4100)
+    award_id = models.ForeignKey(
+        'Award', on_delete=models.CASCADE, blank=True, null=True)
+    order = models.IntegerField(default=0)
+    attachments_json = models.CharField(max_length=4100, blank=True, null=True)
+    available = models.BigIntegerField(
+        null=True, blank=True, default=None, help_text="format: Unix timestamp")
+
+    def save(self, *args, **kwargs):
+        if not self.attachments_json:
+            self.attachments_json = None
+        super(Quiz, self).save(*args, **kwargs)
+
+
+class Award(models.Model):
+    id = models.AutoField(primary_key=True)
+    text = models.CharField(max_length=4100)
+    attachments_json = models.CharField(
+        max_length=4100, null=True, blank=True, default=None)
+
+    def save(self, *args, **kwargs):
+        if not self.attachments_json:
+            self.attachments_json = None
+        super(Award, self).save(*args, **kwargs)
+
+
+class Message(models.Model):
+    id = models.AutoField(primary_key=True)
+    message_type = models.CharField(max_length=255)
+    text = models.CharField(max_length=4100)
+    attachments_json = models.CharField(
+        max_length=4100, null=True, blank=True, default=None)
+
+    def __str__(self):
+        return self.message_type
+
+    def save(self, *args, **kwargs):
+        if not self.attachments_json:
+            self.attachments_json = None
+        super(Message, self).save(*args, **kwargs)

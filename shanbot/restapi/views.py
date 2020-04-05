@@ -1,3 +1,4 @@
+import time
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.forms.models import model_to_dict
@@ -11,6 +12,9 @@ import requests
 from vk_api.utils import get_random_id
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from shanbot import settings
+from vk_utils import text_message, quiz_message
+from restapi import models
+from .states import StateEngine, IncomingMessage
 
 vk_session = vk_api.VkApi(
     token=settings.VK_API_TOKEN)
@@ -30,21 +34,41 @@ def download_picture():
                 f.write(chunk)
 
 
+A = StateEngine(vk)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class EchoView(View):
 
     @csrf_exempt
     def post(self, request, *args, **kwargs):
-        body_unicode = request.body
-        data = orjson.loads(body_unicode)
-        return
-        print(data)
+        data = orjson.loads(request.body)
+        if data["type"] == "confirmation":
+            return HttpResponse(settings.VK_CONFIRMATION_CODE, status=200)
+        current_time = int(time.time())
+        send_time = data['object']['message']['date']
+        if abs(current_time - send_time) > 10: # ttl 1 min
+            return HttpResponse('ok', status=200)
 
-        if not data or 'type' not in data:
+
+
+
+
+        message_class = IncomingMessage.create(data)
+        A.execute(message_class)
+        #gg = quiz_message.QuizMessange(vk, "testetett", ["1","2","3","4"], 2,2,incoming_message=message_class)
+        #gg.execute()
+        f = 0
+
+
+
+        """
+
+        if not data or "type" not in data:
             return HttpResponse('not ok', status=422)
+        # TODO check_secret
+        if data["type"] == "confirmation":
+            return HttpResponse(settings.VK_CONFIRMATION_CODE, status=200)
 
-        if data['type'] == 'confirmation':
-            return HttpResponse(confirmation_code, status=200)
         elif data['type'] == 'message_new':
             from_id = data['object']['message']['from_id']
 
@@ -120,5 +144,5 @@ class EchoView(View):
                     peer_id=from_id,
                     keyboard=keyboard.get_keyboard()
                 )
-            return HttpResponse('ok', status=200)
+            return HttpResponse('ok', status=200)"""
         return HttpResponse('ok', status=200)
