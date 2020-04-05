@@ -55,7 +55,7 @@ class QuizGame(object):
     def send_task(self):
         if self.quiz.attachments_json is not None:
             attachments = self._prepare_attachments(
-                orjson.loads(self.quiz.attachments_json))
+                orjson.loads(self.quiz.attachments_json)['photo'])
         else:
             attachments = None
 

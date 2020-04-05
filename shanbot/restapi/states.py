@@ -3,14 +3,32 @@ from .models import USER_STATES, Message, User, IncomingMessage, Quiz, Award
 from vk_utils import keyboards_preset
 
 
-class BeginStateProcessor(object):
+class BaseStateProcess(object):
     def __init__(self, vk_api):
         self.vk_api = vk_api
-        self.accept_choice = set(["начать"])
-        self.next_state = USER_STATES[1]
 
     def _clean_message(self, text):
         return text.strip().lower()
+
+    def _validate_text(self, text):
+        pass
+
+    def send_message(self, message_type, keyboard, to_id, text=None):
+        message_to_send = Message.objects.get(
+            message_type=message_type)
+        tm = text_message.TextMessange(
+            self.vk_api, message_to_send.text, to_id=to_id, keyboard=keyboard)
+        tm.execute()
+
+    def process(self):
+        raise NotImplementedError
+
+
+class BeginStateProcessor(BaseStateProcess):
+    def __init__(self, vk_api):
+        BaseStateProcess.__init__(self, vk_api)
+        self.accept_choice = set(["начать"])
+        self.next_state = USER_STATES[1]
 
     def _validate_text(self, text):
         return True if text in self.accept_choice else False
@@ -25,30 +43,25 @@ class BeginStateProcessor(object):
 
     def stay_current(self, user):
         message_type = "restart_message"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.RestartKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.RestartKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
         user.state = self.next_state
 
     def to_next_state(self, user):
         message_type = "start_message"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.StartKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.StartKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
         user.state = self.next_state
 
 
-class StartStateProcessor(object):
+class StartStateProcessor(BaseStateProcess):
     def __init__(self, vk_api):
-        self.vk_api = vk_api
+        BaseStateProcess.__init__(self, vk_api)
         self.accept_choice = set(["да", "yes", "y"])
         self.refuse_choice = set(["нет", "no", "n"])
         self.next_state = USER_STATES[2]
-
-    def _clean_message(self, text):
-        return text.strip().lower()
 
     def process(self, user, incoming_message):
         text = self._clean_message(incoming_message.text)
@@ -63,31 +76,28 @@ class StartStateProcessor(object):
 
     def repeat_message(self, user):
         message_type = "start_message"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.StartKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.StartKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
 
     def stay_current(self, user):
         message_type = "refuse_message"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.RestartKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.RestartKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
         user.state = USER_STATES[0]
 
     def to_next_state(self, user):
         message_type = "hello_message"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.HelloKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.HelloKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
         user.state = self.next_state
 
 
-class HelloStateProcessor(object):
+class HelloStateProcessor(BaseStateProcess):
     def __init__(self, vk_api):
-        self.vk_api = vk_api
+        BaseStateProcess.__init__(self, vk_api)
         self.next_state = USER_STATES[3]
 
     def _clean_message(self, text):
@@ -107,35 +117,32 @@ class HelloStateProcessor(object):
 
     def repeat_message(self, user):
         message_type = "hello_message"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.HelloKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.HelloKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
 
     def stay_current(self, user):
         message_type = "invalid_message"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.HelloKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.HelloKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
 
     def to_next_state(self, user):
         message_type = "greeting_message"
+        keyboard = keyboards_preset.GreetingKeyboard.get_keyboard()
+        to_id = user.vk_id
         message_to_send = Message.objects.get(message_type=message_type)
         tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text.format(user.first_name), to_id=user.vk_id, keyboard=keyboards_preset.GreetingKeyboard.get_keyboard())
+            self.vk_api, message_to_send.text.format(user.first_name), to_id=to_id, keyboard=keyboard)
         tm.execute()
         user.state = self.next_state
 
 
-class GreetingStateProcessor(object):
+class GreetingStateProcessor(BaseStateProcess):
     def __init__(self, vk_api):
-        self.vk_api = vk_api
+        BaseStateProcess.__init__(self, vk_api)
         self.accept_choice = set(["крутяк, давай!"])
         self.next_state = USER_STATES[4]
-
-    def _clean_message(self, text):
-        return text.strip().lower()
 
     def _validate_text(self, text):
         text = self._clean_message(text)
@@ -150,30 +157,25 @@ class GreetingStateProcessor(object):
 
     def stay_current(self, user):
         message_type = "invalid_message"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.GreetingKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.GreetingKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
 
     def to_next_state(self, user):
         message_type = "normal_message"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.NormalKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.NormalKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
         user.state = self.next_state
 
 
-class NormalStateProcessor(object):
+class NormalStateProcessor(BaseStateProcess):
     def __init__(self, vk_api):
-        self.vk_api = vk_api
+        BaseStateProcess.__init__(self, vk_api)
         self.quiz_choice = set(["задания"])
         self.secret_mode = set(["секретик"])
         self.quiz_state = USER_STATES[5]
         self.secret_state = USER_STATES[6]
-
-    def _clean_message(self, text):
-        return text.strip().lower()
 
     def process(self, user, incoming_message):
         text = self._clean_message(incoming_message.text)
@@ -185,10 +187,9 @@ class NormalStateProcessor(object):
 
     def to_quiz_state(self, user):
         message_type = "from_normal_to_choice"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.QuizKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.QuizKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
         user.state = USER_STATES[5]
 
     def to_secret_state(self, user):
@@ -196,21 +197,17 @@ class NormalStateProcessor(object):
 
     def stay_current(self, user):
         message_type = "invalid_message"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.NormalKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.NormalKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
 
 
-class QuizStateProcessor(object):
+class QuizStateProcessor(BaseStateProcess):
     def __init__(self, vk_api):
-        self.vk_api = vk_api
+        BaseStateProcess.__init__(self, vk_api)
         self.back_choice = set(["назад"])
         self.new_task_mode = set(["новое задание"])
         self.normal_state = USER_STATES[4]
-
-    def _clean_message(self, text):
-        return text.strip().lower()
 
     def process(self, user, incoming_message):
         text = self._clean_message(incoming_message.text)
@@ -231,63 +228,64 @@ class QuizStateProcessor(object):
 
     def stay_current(self, user):
         message_type = "invalid_message"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.QuizKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.QuizKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
 
     def to_normal_state(self, user):
         message_type = "normal_message_from_quiz"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.NormalKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.NormalKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
         user.state = self.normal_state
         user.solving_mode = False
 
     def no_task_message(self, user):
         message_type = "quiz_no_task"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.QuizKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.QuizKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
 
     def wrong_answer_message(self, user):
         message_type = "wrong_answer"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id)
-        tm.execute()
+        keyboard = None
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
 
     def right_answer_message(self, user):
         message_type = "right_answer"
-        message_to_send = Message.objects.get(message_type=message_type)
-        tm = text_message.TextMessange(
-            self.vk_api, message_to_send.text, to_id=user.vk_id, keyboard=keyboards_preset.QuizKeyboard.get_keyboard())
-        tm.execute()
+        keyboard = keyboards_preset.QuizKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
 
     def play(self, user, quiz, incoming_message):
         quiz_game = quiz_message.QuizGame(self.vk_api, quiz, user)
         if user.solving_mode == False:
-            user.solving_mode = True
-            user.save()
+            self._new_game(user, quiz_game)
+        else:
+            self._continue_game(user, quiz, quiz_game, incoming_message)
+
+    def _new_game(self, user, quiz_game):
+        user.solving_mode = True
+        user.save()
+        quiz_game.send_task()
+
+    def _continue_game(self, user, quiz, quiz_game, incoming_message):
+        if not quiz_game.is_answer_right(incoming_message.text):
+            self.wrong_answer_message(user)
             quiz_game.send_task()
         else:
-            if not quiz_game.is_answer_right(incoming_message.text):
-                self.wrong_answer_message(user)
-                quiz_game.send_task()
-            else:
-                self.right_answer_message(user)
-                self.check_award(quiz, user)
-                user.solving_mode = False
-                user.last_quiz_solve += 1
+            self.check_award(quiz, user)
+            user.solving_mode = False
+            user.last_quiz_solve += 1
 
     def check_award(self, quiz, user):
         if quiz.award_id is None:
+            self.right_answer_message(user)
             return
         award = quiz.award_id
-        tm = text_message.TextMessange(
-            self.vk_api, award.text, to_id=user.vk_id, attachments=award.attachments_json)
+        tm = text_message.TextMessange(self.vk_api, award.text, to_id=user.vk_id,
+                                       attachments=award.attachments_json, keyboard=keyboards_preset.QuizKeyboard.get_keyboard())
         tm.execute()
 
 
