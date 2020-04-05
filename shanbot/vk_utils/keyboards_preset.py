@@ -1,13 +1,13 @@
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 
-
 class RestartKeyboard(object):
     @classmethod
     def get_keyboard(self):
         keyboard = VkKeyboard(one_time=False)
         keyboard.add_button('Начать', color=VkKeyboardColor.PRIMARY)
         return keyboard
+
 
 class StartKeyboard(object):
     @classmethod
@@ -18,10 +18,12 @@ class StartKeyboard(object):
         keyboard.add_button('Да', color=VkKeyboardColor.POSITIVE)
         return keyboard
 
+
 class HelloKeyboard(object):
     @classmethod
     def get_keyboard(self):
         return None
+
 
 class GreetingKeyboard(object):
     @classmethod
