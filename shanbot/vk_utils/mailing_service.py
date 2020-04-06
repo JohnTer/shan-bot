@@ -1,52 +1,32 @@
 import orjson
 import vk_api
-from vk_api.utils import get_random_id
+from .text_message import TextMessange
+from .keyboards_preset import NormalKeyboard
 
-picture_cache = dict()
 
-class TextMessange(object):
-    def __init__(self, vk, text, attachments=None, incoming_message=None,
-                 to_id=None, keyboard=None):
+class MailingService(object):
+    def __init__(self, vk, command_dict):
+        self.command = command_dict["type"]
+        self.user_list = command_dict["user_list"]
+        self.text = command_dict["text"]
+        self.attachments = command_dict["attachments"]
 
-        if incoming_message is None and to_id is None:
-            raise AttributeError("Incoming_message and to_id are None")
-        if text == "":
-            raise AttributeError("Text field is empty")
         self.vk = vk
-        self.text = text
-        self.attachments = attachments
-        self.incoming_message = incoming_message
-        self.to_id = to_id
-        self.keyboard = None if keyboard is None else keyboard.get_keyboard()
+        self.keyboard = NormalKeyboard.get_keyboard()
 
-    def _send_message(self):
-        peer_id = self.to_id if self.to_id is not None else self.incoming_message.from_id
-        attachments = self._prepare_attachments(orjson.loads(
-            self.attachments)["photo"]) if self.attachments is not None else None
+    def _get_active_users(self):
+        response = self.vk.groups.get_members(
+            group_id=193430195, offset=0, count=150, sort='time_asc')
+        users = response['items']
+        return users
 
-        self.vk.messages.send(
-            peer_id=peer_id,
-            attachment=attachments,
-            random_id=get_random_id(),
-            message=self.text,
-            keyboard=self.keyboard
-        )
-
-    def _prepare_attachments(self, attachment_dict):
-        attachments = []
-        upload = vk_api.VkUpload(self.vk)
-        for pht in attachment_dict:
-            if pht in picture_cache:
-                photo = picture_cache[pht]
-                print("KKKKKKK")
-            else:
-                photo = upload.photo_messages(photos=pht)[0]
-                picture_cache[pht] = photo 
-            attachments.append(
-                'photo{}_{}_{}'.format(
-                    photo['owner_id'], photo['id'], photo['access_key'])
-            )
-        return attachments
+    def _send_message(self, to_id):
+        tm = TextMessange(self.vk, self.text, to_id=to_id,
+                          keyboard=self.keyboard, attachments=self.attachments)
+        tm.execute()
 
     def execute(self):
-        self._send_message()
+        if not self.user_list:
+            self.user_list = self._get_active_users()
+        for user in self.user_list:
+            self._send_message(user)

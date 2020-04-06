@@ -45,6 +45,21 @@ class User(models.Model):
                    last_name=last_name,
                    vk_id=vk_user_id)
 
+    @staticmethod
+    def reset_users(user_list):
+        def reset(u):
+            blacklist = set(['begin', 'start', 'hello', 'greeting'])
+            u.solving_mode = False
+            u.state = USER_STATES[4] if u.state not in blacklist else u.state
+
+        if not user_list:
+            users = User.objects.all()
+        else:
+            users = User.objects.filter(vk_id__in=user_list)
+        for user in users:
+            reset(user)
+            user.save()
+
 
 class Quiz(models.Model):
     id = models.AutoField(primary_key=True)
@@ -92,11 +107,12 @@ class Message(models.Model):
         super(Message, self).save(*args, **kwargs)
 
 
-
 class Secret(models.Model):
     id = models.AutoField(primary_key=True)
-    secret_type = models.CharField(max_length=255, null=True, blank=True, default=None)
-    text = models.CharField(max_length=4100, null=True, blank=True, default=None)
+    secret_type = models.CharField(
+        max_length=255, null=True, blank=True, default=None)
+    text = models.CharField(max_length=4100, null=True,
+                            blank=True, default=None)
     attachments_json = models.CharField(
         max_length=4100, null=True, blank=True, default=None)
 
@@ -106,6 +122,26 @@ class Secret(models.Model):
 
     def __str__(self):
         return self.secret_type
+
+    def save(self, *args, **kwargs):
+        if not self.attachments_json:
+            self.attachments_json = None
+        super(Secret, self).save(*args, **kwargs)
+
+
+class MailingMessage(models.Model):
+    id = models.AutoField(primary_key=True)
+    command_type = models.CharField(max_length=255)
+    text = models.CharField(max_length=4100)
+    user_list = models.CharField(max_length=4100)
+    attachments_json = models.CharField(
+        max_length=4100, null=True, blank=True, default=None)
+
+    available = models.BigIntegerField(
+        null=True, blank=True, default=None, help_text="format: Unix timestamp")
+
+    def __str__(self):
+        return self.text
 
     def save(self, *args, **kwargs):
         if not self.attachments_json:

@@ -1,8 +1,11 @@
+import os
 import orjson
 import vk_api
 from vk_api.utils import get_random_id
+from shanbot.settings import STATIC_FILES_FOLDER
 
 picture_cache = dict()
+
 
 class TextMessange(object):
     def __init__(self, vk, text, attachments=None, incoming_message=None,
@@ -21,8 +24,12 @@ class TextMessange(object):
 
     def _send_message(self):
         peer_id = self.to_id if self.to_id is not None else self.incoming_message.from_id
-        attachments = self._prepare_attachments(orjson.loads(
-            self.attachments)["photo"]) if self.attachments is not None else None
+        if isinstance(self.attachments, str):
+            data = orjson.loads(self.attachments)
+        else:
+            data = self.attachments
+        attachments = self._prepare_attachments(
+            data["photo"]) if self.attachments is not None else None
 
         self.vk.messages.send(
             peer_id=peer_id,
@@ -38,10 +45,10 @@ class TextMessange(object):
         for pht in attachment_dict:
             if pht in picture_cache:
                 photo = picture_cache[pht]
-                print("KKKKKKK")
             else:
-                photo = upload.photo_messages(photos=pht)[0]
-                picture_cache[pht] = photo 
+                path = os.path.join(STATIC_FILES_FOLDER, pht)
+                photo = upload.photo_messages(photos=path)[0]
+                picture_cache[pht] = photo
             attachments.append(
                 'photo{}_{}_{}'.format(
                     photo['owner_id'], photo['id'], photo['access_key'])

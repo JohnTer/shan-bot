@@ -1,8 +1,9 @@
+import os
 import orjson
 import vk_api
 from vk_api.utils import get_random_id
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
-
+from shanbot.settings import STATIC_FILES_FOLDER
 from .text_message import TextMessange
 
 picture_cache = dict()
@@ -38,7 +39,8 @@ class QuizGame(object):
             if pht in picture_cache:
                 photo = picture_cache[pht]
             else:
-                photo = upload.photo_messages(photos=pht)[0]
+                path = os.path.join(STATIC_FILES_FOLDER, pht)
+                photo = upload.photo_messages(photos=path)[0]
                 picture_cache[pht] = photo
             attachments.append(
                 'photo{}_{}_{}'.format(
