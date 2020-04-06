@@ -90,3 +90,24 @@ class Message(models.Model):
         if not self.attachments_json:
             self.attachments_json = None
         super(Message, self).save(*args, **kwargs)
+
+
+
+class Secret(models.Model):
+    id = models.AutoField(primary_key=True)
+    secret_type = models.CharField(max_length=255, null=True, blank=True, default=None)
+    text = models.CharField(max_length=4100, null=True, blank=True, default=None)
+    attachments_json = models.CharField(
+        max_length=4100, null=True, blank=True, default=None)
+
+    available = models.BigIntegerField(
+        null=True, blank=True, default=None, help_text="format: Unix timestamp")
+    order_type = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.secret_type
+
+    def save(self, *args, **kwargs):
+        if not self.attachments_json:
+            self.attachments_json = None
+        super(Secret, self).save(*args, **kwargs)

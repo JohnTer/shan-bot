@@ -36,7 +36,7 @@ class EchoView(View):
             return HttpResponse(settings.VK_CONFIRMATION_CODE, status=200)
         current_time = int(time.time())
         send_time = data['object']['message']['date']
-        if abs(current_time - send_time) > 10:  # ttl 1 min
+        if abs(current_time - send_time) > 10:  # ttl 
             return HttpResponse('ok', status=200)
 
         message_class = IncomingMessage.create(data)

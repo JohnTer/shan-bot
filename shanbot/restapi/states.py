@@ -1,5 +1,6 @@
+import random
 from vk_utils import text_message, quiz_message
-from .models import USER_STATES, Message, User, IncomingMessage, Quiz, Award
+from .models import USER_STATES, Message, User, IncomingMessage, Quiz, Award, Secret
 from vk_utils import keyboards_preset
 
 
@@ -182,6 +183,9 @@ class NormalStateProcessor(BaseStateProcess):
         if text in self.quiz_choice:
             self.to_quiz_state(user)
             user.save()
+        elif text in self.secret_mode:
+            self.to_secret_state(user)
+            user.save()
         else:
             self.stay_current(user)
 
@@ -193,7 +197,11 @@ class NormalStateProcessor(BaseStateProcess):
         user.state = USER_STATES[5]
 
     def to_secret_state(self, user):
-        self.stay_current(user)
+        message_type = "from_normal_to_secret"
+        keyboard = keyboards_preset.SecretKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
+        user.state = USER_STATES[6]
 
     def stay_current(self, user):
         message_type = "invalid_message"
@@ -289,6 +297,48 @@ class QuizStateProcessor(BaseStateProcess):
         tm.execute()
 
 
+class SecretStateProcessor(BaseStateProcess):
+    def __init__(self, vk_api):
+        BaseStateProcess.__init__(self, vk_api)
+        self.back_choice = set(["назад"])
+        self.new_secret = set(["новый секретик"])
+        self.normal_state = USER_STATES[4]
+
+    def process(self, user, incoming_message):
+        text = self._clean_message(incoming_message.text)
+        if text in self.back_choice:
+            self.to_normal_state(user)
+            user.save()
+        elif text in self.new_secret:
+            self.send_secret(user)
+        else:
+            self.stay_current(user)
+
+    def send_secret(self, user):
+        secrets = Secret.objects.filter(order_type=0)
+        secret = random.choice(secrets)
+        keyboard = keyboards_preset.SecretKeyboard.get_keyboard()
+        to_id = user.vk_id
+
+        tm = text_message.TextMessange(
+            self.vk_api, secret.text, to_id=to_id, keyboard=keyboard, attachments=secret.attachments_json)
+        tm.execute()
+
+    def stay_current(self, user):
+        message_type = "invalid_message"
+        keyboard = keyboards_preset.SecretKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
+
+    def to_normal_state(self, user):
+        message_type = "normal_message_from_quiz"
+        keyboard = keyboards_preset.NormalKeyboard.get_keyboard()
+        to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
+        user.state = self.normal_state
+        user.solving_mode = False
+
+
 class StateEngine():
     def __init__(self, vk_api):
         self.user_cache = set()
@@ -320,6 +370,8 @@ class StateEngine():
             NormalStateProcessor(self.vk_api).process(user, incoming_message)
         elif state == USER_STATES[5]:
             QuizStateProcessor(self.vk_api).process(user, incoming_message)
+        elif state == USER_STATES[6]:
+            SecretStateProcessor(self.vk_api).process(user, incoming_message)
 
     def execute(self, incoming_message):
         user = self._check_new_person(incoming_message)

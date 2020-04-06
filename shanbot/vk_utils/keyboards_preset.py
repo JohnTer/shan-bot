@@ -51,3 +51,13 @@ class QuizKeyboard(object):
         keyboard.add_button('Назад', color=VkKeyboardColor.DEFAULT)
         keyboard.add_button('Новое задание', color=VkKeyboardColor.PRIMARY)
         return keyboard
+
+
+class SecretKeyboard(object):
+    @classmethod
+    def get_keyboard(self):
+        keyboard = VkKeyboard(one_time=True)
+
+        keyboard.add_button('Назад', color=VkKeyboardColor.DEFAULT)
+        keyboard.add_button('Новый секретик', color=VkKeyboardColor.POSITIVE)
+        return keyboard
