@@ -12,8 +12,8 @@ admin.site.register(User, UserAdmin)
 
 
 class QuizAdmin(admin.ModelAdmin):
-    list_display = ('name', 'text', 'order',
-                    'available', )
+    list_display = ('order', 'text',
+                    'available_strtime', 'available_unixtime')
 
 
 admin.site.register(Quiz, QuizAdmin)

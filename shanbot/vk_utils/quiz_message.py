@@ -5,6 +5,7 @@ from vk_api.utils import get_random_id
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from shanbot.settings import STATIC_FILES_FOLDER
 from .text_message import TextMessange
+from .keyboards_preset import BackOnlyKeyboard
 
 picture_cache = dict()
 
@@ -22,6 +23,10 @@ class QuizGame(object):
         self._create_keyboard()
 
     def _create_keyboard(self):
+        if not self.answers:
+            self.keyboard = BackOnlyKeyboard.get_keyboard().get_keyboard()
+            return
+
         keyboard = VkKeyboard(one_time=False)
         for index, answ in enumerate(self.answers):
             if 0 < index:

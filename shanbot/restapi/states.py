@@ -1,4 +1,4 @@
-import random
+import random, time
 from vk_utils import text_message, quiz_message
 from .models import USER_STATES, Message, User, IncomingMessage, Quiz, Award, Secret
 from vk_utils import keyboards_preset
@@ -225,7 +225,10 @@ class QuizStateProcessor(BaseStateProcess):
         elif text in self.new_task_mode or user.solving_mode:
             last_quiz_solve = user.last_quiz_solve
             try:
+                current_time = int(time.time())
                 quiz = Quiz.objects.get(order=last_quiz_solve + 1)
+                if quiz.available_unixtime > current_time:
+                    raise Quiz.DoesNotExist 
             except Quiz.DoesNotExist:
                 self.no_task_message(user)
             else:
@@ -304,6 +307,8 @@ class SecretStateProcessor(BaseStateProcess):
         self.new_secret = set(["новый секретик"])
         self.normal_state = USER_STATES[4]
 
+        self.random_text = ("Ах!", "Ох!", "Ага!", "Ба!", "Ля!")
+
     def process(self, user, incoming_message):
         text = self._clean_message(incoming_message.text)
         if text in self.back_choice:
@@ -319,9 +324,11 @@ class SecretStateProcessor(BaseStateProcess):
         secret = random.choice(secrets)
         keyboard = keyboards_preset.SecretKeyboard.get_keyboard()
         to_id = user.vk_id
+        text = random.choice(
+            self.random_text) if secret.text is None else secret.text
 
         tm = text_message.TextMessange(
-            self.vk_api, secret.text, to_id=to_id, keyboard=keyboard, attachments=secret.attachments_json)
+            self.vk_api, text, to_id=to_id, keyboard=keyboard, attachments=secret.attachments_json)
         tm.execute()
 
     def stay_current(self, user):

@@ -1,5 +1,6 @@
 import time
 import orjson
+import dateparser
 from django.db import models
 
 USER_STATES = ('begin', 'start', 'hello',
@@ -63,19 +64,25 @@ class User(models.Model):
 
 class Quiz(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=4100)
+    name = models.CharField(max_length=4100, blank=True, null=True)
     text = models.CharField(max_length=4100)
     answers_json = models.CharField(max_length=4100)
     award_id = models.ForeignKey(
         'Award', on_delete=models.CASCADE, blank=True, null=True)
     order = models.IntegerField(default=0)
     attachments_json = models.CharField(max_length=4100, blank=True, null=True)
-    available = models.BigIntegerField(
-        null=True, blank=True, default=None, help_text="format: Unix timestamp")
+
+    available_unixtime = models.BigIntegerField(
+        null=True, blank=True, default=0, help_text="format: Unix timestamp")
+    available_strtime = models.CharField(
+        max_length=255, default="06.04.2020 12:00")
 
     def save(self, *args, **kwargs):
         if not self.attachments_json:
             self.attachments_json = None
+        if self.available_strtime:
+            date = dateparser.parse(self.available_strtime, languages=['ru'])
+            self.available_unixtime = date.timestamp()
         super(Quiz, self).save(*args, **kwargs)
 
 
@@ -121,7 +128,7 @@ class Secret(models.Model):
     order_type = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.secret_type
+        return str(self.secret_type)
 
     def save(self, *args, **kwargs):
         if not self.attachments_json:

@@ -61,3 +61,12 @@ class SecretKeyboard(object):
         keyboard.add_button('Назад', color=VkKeyboardColor.DEFAULT)
         keyboard.add_button('Новый секретик', color=VkKeyboardColor.POSITIVE)
         return keyboard
+
+
+class BackOnlyKeyboard(object):
+    @classmethod
+    def get_keyboard(self):
+        keyboard = VkKeyboard(one_time=False)
+
+        keyboard.add_button('Назад', color=VkKeyboardColor.DEFAULT)
+        return keyboard
