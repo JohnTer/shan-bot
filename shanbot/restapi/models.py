@@ -32,13 +32,15 @@ def get_time():
 class User(models.Model):
     id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255, default='')
     vk_id = models.IntegerField(unique=True)
     state = models.CharField(max_length=255, default=USER_STATES[0])
     created_at = models.BigIntegerField(
-        default=get_time, blank=True, help_text="format: Unix timestamp")
+        default=get_time, blank=True, help_text='format: Unix timestamp')
     last_quiz_solve = models.IntegerField(default=0)
     solving_mode = models.BooleanField(default=False)
+    admin_mode = models.BooleanField(default=False)
+
 
     @classmethod
     def create(cls, vk_user_id, first_name="", last_name=""):
@@ -57,6 +59,7 @@ class User(models.Model):
             users = User.objects.all()
         else:
             users = User.objects.filter(vk_id__in=user_list)
+
         for user in users:
             reset(user)
             user.save()
