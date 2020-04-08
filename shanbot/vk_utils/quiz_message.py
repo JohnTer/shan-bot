@@ -18,7 +18,13 @@ class QuizGame(object):
 
         answ = orjson.loads(quiz.answers_json)
 
-        self.right_answer = answ['right_answer'].lower()
+        right_answer = answ['right_answer']
+        if isinstance(right_answer, str):
+            right_answer = [right_answer, ]
+        for i in range(len(right_answer)):
+            right_answer[i] = right_answer[i].lower()
+
+        self.right_answer = right_answer
         self.answers = answ['answers']
         self._create_keyboard()
 
@@ -55,7 +61,7 @@ class QuizGame(object):
 
     def is_answer_right(self, user_answer):
         clean_answer = self._clear_message(user_answer)
-        if clean_answer == self.right_answer:
+        if clean_answer in self.right_answer:
             return True
         return False
 
