@@ -19,5 +19,5 @@ from django.conf.urls import include, url
 
 urlpatterns = [
     url(r"^api/v1/", include('restapi.urls')),
-    path('admin/', admin.site.urls)
+    path('kariadovgienko/admin/', admin.site.urls)
 ]
