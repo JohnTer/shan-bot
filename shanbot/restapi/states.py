@@ -164,9 +164,13 @@ class GreetingStateProcessor(BaseStateProcess):
         self.send_message(message_type, keyboard, to_id)
 
     def to_next_state(self, user):
-        message_type = "normal_message"
+        message_type = "greeting_video_link"
+        
         keyboard = keyboards_preset.NormalKeyboard.get_keyboard()
         to_id = user.vk_id
+        self.send_message(message_type, keyboard, to_id)
+        
+        message_type = "normal_message"
         self.send_message(message_type, keyboard, to_id)
         user.state = self.next_state
 
