@@ -78,7 +78,7 @@ class Quiz(models.Model):
     available_unixtime = models.BigIntegerField(
         null=True, blank=True, default=0, help_text="format: Unix timestamp")
     available_strtime = models.CharField(
-        max_length=255, default="06.04.2020 12:00")
+        max_length=255, default="26.04.2020 12:00")
 
     def save(self, *args, **kwargs):
         if not self.attachments_json:
