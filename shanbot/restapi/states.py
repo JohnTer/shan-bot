@@ -1,4 +1,5 @@
-import random, time
+import random
+import time
 from vk_utils import text_message, quiz_message
 from .models import USER_STATES, Message, User, IncomingMessage, Quiz, Award, Secret
 from vk_utils import keyboards_preset
@@ -227,8 +228,8 @@ class QuizStateProcessor(BaseStateProcess):
             try:
                 current_time = int(time.time())
                 quiz = Quiz.objects.get(order=last_quiz_solve + 1)
-                if quiz.available_unixtime > current_time:
-                    raise Quiz.DoesNotExist 
+                if quiz.available_unixtime > current_time and not user.admin_mode:
+                    raise Quiz.DoesNotExist
             except Quiz.DoesNotExist:
                 self.no_task_message(user)
             else:
