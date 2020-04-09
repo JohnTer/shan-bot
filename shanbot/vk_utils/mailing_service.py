@@ -29,4 +29,8 @@ class MailingService(object):
         if not self.user_list:
             self.user_list = self._get_active_users()
         for user in self.user_list:
-            self._send_message(user)
+            try:
+                self._send_message(user)
+            except Exception as e:
+                with open("mailling_exeptions.txt", "a") as f:
+                    f.write(str(e) + "\n\n")
