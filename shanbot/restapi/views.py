@@ -59,7 +59,8 @@ class EchoView(View):
         try:
             message_class = IncomingMessage.create(data)
             A.execute(message_class)
-        except:
+        except Exception as e:
+            print(e)
             vk_id = data['object']['message']['from_id']
             send_secret(vk_id)
             User.reset_users([vk_id])
