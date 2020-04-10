@@ -165,11 +165,11 @@ class GreetingStateProcessor(BaseStateProcess):
 
     def to_next_state(self, user):
         message_type = "greeting_video_link"
-        
+
         keyboard = keyboards_preset.NormalKeyboard.get_keyboard()
         to_id = user.vk_id
         self.send_message(message_type, keyboard, to_id)
-        
+
         message_type = "normal_message"
         self.send_message(message_type, keyboard, to_id)
         user.state = self.next_state
@@ -303,6 +303,11 @@ class QuizStateProcessor(BaseStateProcess):
         tm = text_message.TextMessange(self.vk_api, award.text, to_id=user.vk_id,
                                        attachments=award.attachments_json, keyboard=keyboards_preset.QuizKeyboard.get_keyboard())
         tm.execute()
+
+        if award.extended_text is not None:
+            tm = text_message.TextMessange(self.vk_api, award.extended_text, to_id=user.vk_id,
+                                           attachments=award.extended_attachments_json, keyboard=keyboards_preset.QuizKeyboard.get_keyboard())
+            tm.execute()
 
 
 class SecretStateProcessor(BaseStateProcess):

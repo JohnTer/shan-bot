@@ -41,7 +41,6 @@ class User(models.Model):
     solving_mode = models.BooleanField(default=False)
     admin_mode = models.BooleanField(default=False)
 
-
     @classmethod
     def create(cls, vk_user_id, first_name="", last_name=""):
         return cls(first_name=first_name,
@@ -93,6 +92,11 @@ class Award(models.Model):
     id = models.AutoField(primary_key=True)
     text = models.CharField(max_length=4100)
     attachments_json = models.CharField(
+        max_length=4100, null=True, blank=True, default=None)
+
+    extended_text = models.CharField(
+        max_length=4100, null=True, blank=True, default=None)
+    extended_attachments_json = models.CharField(
         max_length=4100, null=True, blank=True, default=None)
 
     def save(self, *args, **kwargs):
