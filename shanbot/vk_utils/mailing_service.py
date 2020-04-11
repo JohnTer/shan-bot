@@ -16,7 +16,7 @@ class MailingService(object):
 
     def _get_active_users(self):
         response = self.vk.groups.get_members(
-            group_id=193430195, offset=0, count=150, sort='time_asc')
+            group_id=193982859, offset=0, count=150, sort='time_asc')
         users = response['items']
         return users
 
