@@ -1,4 +1,5 @@
 import os
+import random
 import orjson
 import vk_api
 from vk_api.utils import get_random_id
@@ -26,6 +27,7 @@ class QuizGame(object):
 
         self.right_answer = right_answer
         self.answers = answ['answers']
+        random.shuffle(self.answers)
         self._create_keyboard()
 
     def _create_keyboard(self):
