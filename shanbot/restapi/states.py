@@ -178,8 +178,8 @@ class GreetingStateProcessor(BaseStateProcess):
 class NormalStateProcessor(BaseStateProcess):
     def __init__(self, vk_api):
         BaseStateProcess.__init__(self, vk_api)
-        self.quiz_choice = set(["задания"])
-        self.secret_mode = set(["секретик"])
+        self.quiz_choice = set(["задания\U0001F340"])
+        self.secret_mode = set(["секретик\U00002728"])
         self.quiz_state = USER_STATES[5]
         self.secret_state = USER_STATES[6]
 

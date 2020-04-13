@@ -38,8 +38,8 @@ class NormalKeyboard(object):
     def get_keyboard(self):
         keyboard = VkKeyboard(one_time=False)
 
-        keyboard.add_button('Задания', color=VkKeyboardColor.PRIMARY)
-        keyboard.add_button('Секретик', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button('Задания\U0001F340', color=VkKeyboardColor.PRIMARY)
+        keyboard.add_button('Секретик\U00002728', color=VkKeyboardColor.POSITIVE)
         return keyboard
 
 
