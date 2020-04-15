@@ -74,6 +74,9 @@ class Quiz(models.Model):
     order = models.IntegerField(default=0)
     attachments_json = models.CharField(max_length=4100, blank=True, null=True)
 
+    wrong_award_id = models.ForeignKey(
+        'WrongAward', on_delete=models.CASCADE, null=True, default=None)
+
     available_unixtime = models.BigIntegerField(
         null=True, blank=True, default=0, help_text="format: Unix timestamp")
     available_strtime = models.CharField(
@@ -103,6 +106,24 @@ class Award(models.Model):
         if not self.attachments_json:
             self.attachments_json = None
         super(Award, self).save(*args, **kwargs)
+
+
+class WrongAward(models.Model):
+    id = models.AutoField(primary_key=True)
+    text = models.CharField(max_length=4100)
+    attachments_json = models.CharField(
+        max_length=4100, null=True, blank=True, default=None)
+
+    extended_text = models.CharField(
+        max_length=4100, null=True, blank=True, default=None)
+    extended_attachments_json = models.CharField(
+        max_length=4100, null=True, blank=True, default=None)
+
+    def save(self, *args, **kwargs):
+        if not self.attachments_json:
+            self.attachments_json = None
+        super(WrongAward, self).save(*args, **kwargs)
+
 
 
 class Message(models.Model):

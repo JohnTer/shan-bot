@@ -288,8 +288,17 @@ class QuizStateProcessor(BaseStateProcess):
 
     def _continue_game(self, user, quiz, quiz_game, incoming_message):
         if not quiz_game.is_answer_right(incoming_message.text):
-            self.wrong_answer_message(user)
-            quiz_game.send_task()
+            if quiz.wrong_award_id is None:
+                self.wrong_answer_message(user)
+                quiz_game.send_task()
+            else:
+                if incoming_message.text.strip().lower() in set(["ложь", "правда"]):
+                    self.check_wrong_award(quiz, user)
+                    user.solving_mode = False
+                    user.last_quiz_solve += 1
+                else:
+                    self.wrong_answer_message(user)
+                    quiz_game.send_task()
         else:
             self.check_award(quiz, user)
             user.solving_mode = False
@@ -308,6 +317,23 @@ class QuizStateProcessor(BaseStateProcess):
             tm = text_message.TextMessange(self.vk_api, award.extended_text, to_id=user.vk_id,
                                            attachments=award.extended_attachments_json, keyboard=keyboards_preset.QuizKeyboard.get_keyboard())
             tm.execute()
+
+    def check_wrong_award(self, quiz, user):
+        if quiz.wrong_award_id is None:
+            self.right_answer_message(user)
+            return
+        award = quiz.wrong_award_id
+        tm = text_message.TextMessange(self.vk_api, award.text, to_id=user.vk_id,
+                                       attachments=award.attachments_json, keyboard=keyboards_preset.QuizKeyboard.get_keyboard())
+        tm.execute()
+
+        if award.extended_text is not None:
+            tm = text_message.TextMessange(self.vk_api, award.extended_text, to_id=user.vk_id,
+                                           attachments=award.extended_attachments_json, keyboard=keyboards_preset.QuizKeyboard.get_keyboard())
+            tm.execute()
+
+
+
 
 
 class SecretStateProcessor(BaseStateProcess):
