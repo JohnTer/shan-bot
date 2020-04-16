@@ -25,6 +25,13 @@ class MailingService(object):
                           keyboard=self.keyboard, attachments=self.attachments)
         tm.execute()
 
+    @staticmethod
+    def manual_send_message(vk, to_id, text):
+        keyboard = NormalKeyboard.get_keyboard()
+        tm = TextMessange(vk, text, to_id=to_id,
+                          keyboard=keyboard)
+        tm.execute()
+
     def execute(self):
         if not self.user_list:
             self.user_list = self._get_active_users()

@@ -53,7 +53,9 @@ class EchoView(View):
             return HttpResponse(settings.VK_CONFIRMATION_CODE, status=200)
         current_time = int(time.time())
         send_time = data['object']['message']['date']
-        if abs(current_time - send_time) > 20:  # ttl
+        if abs(current_time - send_time) > 30:  # ttl
+            with open("timeout.txt", "a") as f:
+                print(str(current_time), str(send_time), file=f)
             return HttpResponse('ok', status=200)
 
         try:
@@ -78,6 +80,22 @@ class MailingServiceView(View):
         m_service.execute()
         User.reset_users(data['user_list'])
         return HttpResponse('ok', status=200)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MailingServiceDBView(View):
+
+    @csrf_exempt
+    def post(self, request, *args, **kwargs):
+        data = orjson.loads(request.body)
+        m_service = mailing_service.MailingService(vk, data)
+        m_service.execute()
+        User.reset_users(data['user_list'])
+        return HttpResponse('ok', status=200)
+
+
+
+
 
 
 @method_decorator(csrf_exempt, name='dispatch')
