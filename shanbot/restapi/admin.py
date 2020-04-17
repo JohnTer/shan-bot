@@ -21,7 +21,7 @@ class UserAdmin(admin.ModelAdmin):
             text = f.read()
         ids = []
         for obj in queryset:
-            if obj.last_quiz_solve == 40:
+            if obj.last_quiz_solve > 34:
                 ids.append(obj.vk_id)
 
         for i in ids:
