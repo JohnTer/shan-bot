@@ -20,7 +20,7 @@ class TextMessange(object):
         self.attachments = attachments
         self.incoming_message = incoming_message
         self.to_id = to_id
-        self.keyboard = None if keyboard is None else keyboard.get_keyboard()
+        self.keyboard = None if keyboard is None else keyboard.get_empty_keyboard()
 
     def _send_message(self):
         peer_id = self.to_id if self.to_id is not None else self.incoming_message.from_id

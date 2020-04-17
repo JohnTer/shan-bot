@@ -28,7 +28,7 @@ class UserAdmin(admin.ModelAdmin):
             try:
                 mailing_service.MailingService.manual_send_message(
                     vk, i, text)
-            except:
+            except Exception as e:
                 print("Err", i)
 
         User.reset_users(ids)

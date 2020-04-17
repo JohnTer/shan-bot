@@ -27,7 +27,7 @@ class MailingService(object):
 
     @staticmethod
     def manual_send_message(vk, to_id, text):
-        keyboard = NormalKeyboard.get_keyboard()
+        keyboard = NormalKeyboard().get_keyboard()
         tm = TextMessange(vk, text, to_id=to_id,
                           keyboard=keyboard)
         tm.execute()

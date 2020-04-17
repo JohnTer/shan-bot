@@ -51,6 +51,8 @@ class EchoView(View):
         data = orjson.loads(request.body)
         if data["type"] == "confirmation":
             return HttpResponse(settings.VK_CONFIRMATION_CODE, status=200)
+        return HttpResponse('ok', status=200)
+        
         current_time = int(time.time())
         send_time = data['object']['message']['date']
         if abs(current_time - send_time) > 30:  # ttl
