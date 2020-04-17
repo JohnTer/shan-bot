@@ -3,7 +3,16 @@ from .models import IncomingMessage, User, Quiz, Award, Message, Secret, WrongAw
 from vk_utils import mailing_service
 from .views import vk
 # Register your models here.
+from django.contrib.admin import AdminSite
+from django.utils.translation import ugettext_lazy
 
+
+class MyEmsAdminSite(AdminSite):
+    site_title = ugettext_lazy("SHAN-BOT Beta version 0.6")
+    site_header = ugettext_lazy("SHAN-BOT Beta version 0.6")
+    index_title = ugettext_lazy("SHAN-BOT Beta version 0.6")
+
+mas = MyEmsAdminSite()
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('vk_id', 'first_name', 'state',
@@ -34,7 +43,7 @@ class UserAdmin(admin.ModelAdmin):
         User.reset_users(ids)
 
 
-admin.site.register(User, UserAdmin)
+mas.register(User, UserAdmin)
 
 
 class QuizAdmin(admin.ModelAdmin):
@@ -42,21 +51,21 @@ class QuizAdmin(admin.ModelAdmin):
                     'available_strtime', 'available_unixtime')
 
 
-admin.site.register(Quiz, QuizAdmin)
+mas.register(Quiz, QuizAdmin)
 
 
 class AwardAdmin(admin.ModelAdmin):
     list_display = ('id', 'text', 'attachments_json')
 
 
-admin.site.register(Award, AwardAdmin)
+mas.register(Award, AwardAdmin)
 
 
 class MessageAdmin(admin.ModelAdmin):
     list_display = ('id', 'message_type', 'text', 'attachments_json')
 
 
-admin.site.register(Message, MessageAdmin)
+mas.register(Message, MessageAdmin)
 
 
 class SecretAdmin(admin.ModelAdmin):
@@ -64,14 +73,16 @@ class SecretAdmin(admin.ModelAdmin):
                     'order_type', 'attachments_json')
 
 
-admin.site.register(Secret, SecretAdmin)
+mas.register(Secret, SecretAdmin)
 
 
-admin.site.register(IncomingMessage)
+mas.register(IncomingMessage)
 
 
 class WrongAwardAdmin(admin.ModelAdmin):
     list_display = ('id', 'text', 'attachments_json')
 
 
-admin.site.register(WrongAward, WrongAwardAdmin)
+mas.register(WrongAward, WrongAwardAdmin)
+
+
