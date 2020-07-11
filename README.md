@@ -1,6 +1,7 @@
 # VK-бот ПеремеШАНные
-
-<img src="https://user-images.githubusercontent.com/36763228/87231973-131e9880-c3c4-11ea-8c14-34ddcbd6acf9.jpg"  width="35%" height="50%">
+<p align="center">
+<img src="https://user-images.githubusercontent.com/36763228/87231973-131e9880-c3c4-11ea-8c14-34ddcbd6acf9.jpg"  width="45%" height="45%">
+</p>
 
 ## Содержание
 * [Описание](#Описание)
@@ -52,7 +53,6 @@ config.json :
 
 
 <img src="https://user-images.githubusercontent.com/36763228/87231999-51b45300-c3c4-11ea-8f13-e72862e89495.png"  width="20%" height="20%">
-
 <img src="https://user-images.githubusercontent.com/36763228/87232302-74476b80-c3c6-11ea-9740-db0200b6316e.png"  width="20%" height="20%">
 
 
